@@ -24,9 +24,21 @@ class _ExpensesState extends State<Expenses> {
         category: Category.leisure),
   ];
 
+  void addExpense(Expense expense){
+    setState(() {
+      _registeredExpenses.add(expense);
+    });
+
+  }
+
+  void removeExpenses(Expense expense){
+    setState(() {
+      _registeredExpenses.remove(expense);
+    });
+  }
 
   void _openExpenseOverlay(){
-      showModalBottomSheet(context: context, builder: (ctx)=> const NewExpense());
+      showModalBottomSheet(context: context, builder: (ctx)=>  NewExpense(onAddExpense: addExpense,));
   }
 
   @override
@@ -39,7 +51,7 @@ class _ExpensesState extends State<Expenses> {
       body: Column(
         children: [
           const Text('The Chart'),
-          Expanded(child: ExpensesList(expenses: _registeredExpenses)),
+          Expanded(child: ExpensesList(expenses: _registeredExpenses,onRemoveExpense: removeExpenses,)),
         ],
       ),
     );
@@ -47,14 +59,21 @@ class _ExpensesState extends State<Expenses> {
 }
 
 class ExpensesList extends StatelessWidget {
-  const ExpensesList({super.key, required this.expenses});
+  const ExpensesList({super.key, required this.expenses, required this.onRemoveExpense});
   final List<Expense> expenses;
+  final void Function (Expense expense) onRemoveExpense;
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemBuilder: (BuildContext context, int index) =>
-          ExpenseItem(expense: expenses[index]),
       itemCount: expenses.length,
+      itemBuilder: (BuildContext context, int index) =>
+          Dismissible(
+            onDismissed: (direction){
+              onRemoveExpense(expenses[index]);
+            },
+              key: ValueKey(expenses[index]),
+              child: ExpenseItem(expense: expenses[index])),
+
     );
   }
 }
